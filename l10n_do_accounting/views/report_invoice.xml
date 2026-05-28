@@ -113,9 +113,9 @@
                     <t t-if="commercial_partner_id.phone">
                         <strong>Tel.:</strong>
                         <span t-field="commercial_partner_id.phone"/>
-                        <t t-if="commercial_partner_id.mobile">
+                        <!-- <t t-if="commercial_partner_id.mobile">
                             <span>/</span>
-                        </t>
+                        </t> -->
                     </t>
                     <!-- <t t-if="commercial_partner_id.mobile">
                         <strong>Cel.:</strong>
