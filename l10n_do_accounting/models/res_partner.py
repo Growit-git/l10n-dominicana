@@ -115,7 +115,10 @@ class Partner(models.Model):
                 continue
 
             if vat_len == 11:
-                partner.l10n_do_dgii_tax_payer_type = "non_payer"
+                partner_type = "non_payer"
+                if partner.l10n_do_dgii_tax_payer_type == "taxpayer":
+                    partner_type = "taxpayer"
+                partner.l10n_do_dgii_tax_payer_type = partner_type
             elif vat_len == 9:
                 if "MINISTERIO" in upper_name and not vat.startswith("4"):
                     partner.l10n_do_dgii_tax_payer_type = "governmental"
