@@ -2,9 +2,11 @@
 <odoo>
 
     <template id="web_address_layout_inherited" inherit_id="web.address_layout">
-        <!-- do not show company address on document header  -->
+        <!-- En v19 el primer div del bloque address es el del DESTINATARIO (en v16 era el de la compañía). Los documentos fiscales dominicanos
+             imprimen su propio destinatario (report_invoice_document_inherited quita `address`); el resto de los asientos (facturas de proveedor,
+             facturas sin documentos fiscales) usan el informe estándar y deben conservar el contacto. -->
         <xpath expr="//div[@t-if='address']/div" position="attributes">
-            <attribute name="t-if">doc_model != "account.move" or (doc_model == "account.move" and o.country_code != "DO")</attribute>
+            <attribute name="t-if">doc_model != "account.move" or not (o.l10n_latam_use_documents and o.country_code == "DO")</attribute>
         </xpath>
     </template>
 
