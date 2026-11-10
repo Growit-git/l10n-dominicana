@@ -476,26 +476,37 @@ class AccountMove(models.Model):
 
         return super(AccountMove, self).action_reverse()
 
+
     @api.onchange("l10n_latam_document_type_id", "l10n_latam_document_number")
     def _inverse_l10n_latam_document_number(self):
-        for rec in self.filtered("l10n_latam_document_type_id"):
+        super(AccountMove,
+            self.filtered(lambda m: m.country_code != "DO"),
+        )._inverse_l10n_latam_document_number()
+    
+        to_review = self.filtered(
+            lambda rec: rec.country_code == "DO"
+            and rec.l10n_latam_document_type_id
+        )
+    
+        for rec in to_review:
             if not rec.l10n_latam_document_number:
                 rec.l10n_do_fiscal_number = ""
-            else:
-                document_type_id = rec.l10n_latam_document_type_id
-                if document_type_id.l10n_do_ncf_type:
-                    document_number = document_type_id._format_document_number(
-                        rec.l10n_latam_document_number
-                    )
-                else:
-                    document_number = rec.l10n_latam_document_number
-
-                if rec.l10n_latam_document_number != document_number:
-                    rec.l10n_latam_document_number = document_number
-                rec.l10n_do_fiscal_number = document_number
-        super(
-            AccountMove, self.filtered(lambda m: m.country_code != "DO")
-        )._inverse_l10n_latam_document_number()
+                continue
+    
+            document_type = rec.l10n_latam_document_type_id
+    
+            document_number = (
+                document_type._format_document_number(
+                    rec.l10n_latam_document_number
+                )
+                if document_type.l10n_do_ncf_type
+                else rec.l10n_latam_document_number
+            )
+    
+            if rec.l10n_latam_document_number != document_number:
+                rec.l10n_latam_document_number = document_number
+    
+            rec.l10n_do_fiscal_number = document_number
 
     def _get_l10n_latam_documents_domain(self):
         self.ensure_one()
