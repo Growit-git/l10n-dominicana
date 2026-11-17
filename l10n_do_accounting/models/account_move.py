@@ -7,6 +7,14 @@ from odoo.exceptions import ValidationError, UserError, AccessError
 from odoo.tools.sql import column_exists, create_column, drop_index, index_exists
 
 
+class _MessageOnlyConstraint(models.Constraint):
+    """Restricción que solo aporta el MENSAJE de error: el índice único con ese nombre lo crea `_auto_init` con SQL propio (con condiciones WHERE). Odoo 19 intentaría crear una
+    restricción con definición vacía y registraría `ERROR odoo.schema: syntax error at end of input` (la build de Odoo.sh lo cuenta como prueba fallida); aquí no se toca la base."""
+
+    def apply_to_database(self, model):
+        return
+
+
 class AccountMove(models.Model):
     _inherit = "account.move"
     _rec_names_search = ["l10n_do_fiscal_number"]
@@ -124,15 +132,15 @@ class AccountMove(models.Model):
         "manually because a new expiration date was set on journal",
     )
 
-    _unique_l10n_do_fiscal_number_sales = models.Constraint(
+    _unique_l10n_do_fiscal_number_sales = _MessageOnlyConstraint(
         '',
         "Another document with the same fiscal number already exists.",
     )
-    _unique_l10n_do_fiscal_number_purchase_manual = models.Constraint(
+    _unique_l10n_do_fiscal_number_purchase_manual = _MessageOnlyConstraint(
         '',
         "Another document for the same partner with the same fiscal number already exists.",
     )
-    _unique_l10n_do_fiscal_number_purchase_internal = models.Constraint(
+    _unique_l10n_do_fiscal_number_purchase_internal = _MessageOnlyConstraint(
         '',
         "Another document for the same partner with the same fiscal number already exists.",
     )
