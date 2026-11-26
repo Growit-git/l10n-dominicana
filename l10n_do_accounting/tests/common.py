@@ -7,15 +7,19 @@ class L10nDOTestsCommon(AccountTestInvoicingCommon):
     country_code = "DO"
 
     @classmethod
+    def setup_independent_company(cls, **kwargs):
+        return super().setup_independent_company(
+            vat="131793916",
+            street="dummy address",
+            **kwargs,
+        )
+
+    @classmethod
     def setUpClass(cls):
         super().setUpClass()
 
         cls.do_company = cls.env.company
-        cls.do_company.write({
-            "name": "INDEXA SRL",
-            "vat": "131793916",
-            "street": "dummy address",
-        })
+        cls.do_company.name = "INDEXA SRL"
 
         # multi-currency variables
         cls.usd_currency = cls.env.ref("base.USD")
