@@ -25,9 +25,8 @@ class AccountMoveTest(common.L10nDOTestsCommon):
         )
         self.assertEqual(
             ncf_sale_credito_fiscal_invoice.l10n_latam_available_document_type_ids,
-            self.do_document_type["fiscal"],
-            "Tax Payer invoice must have only Credito Fiscal as available "
-            "document type",
+            self.do_document_type["fiscal"] | self.do_document_type["consumer"],
+            "Taxpayer sales must offer both fiscal credit and consumer NCF types.",
         )
 
         self.assertFalse(
@@ -281,9 +280,8 @@ class AccountMoveTest(common.L10nDOTestsCommon):
         )
         self.assertEqual(
             ecf_sale_credito_fiscal_invoice.l10n_latam_available_document_type_ids,
-            self.do_document_type["e-fiscal"],
-            "Tax Payer invoice must have only Credito Fiscal Electronica as available "
-            "document type",
+            self.do_document_type["e-fiscal"] | self.do_document_type["e-consumer"],
+            "Taxpayer sales must offer both fiscal credit and consumer e-CF types.",
         )
 
         # Credit Note

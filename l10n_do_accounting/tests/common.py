@@ -146,20 +146,11 @@ class L10nDOTestsCommon(AccountTestInvoicingCommon):
                     if ncf_type and ncf_type[-7:] == "special":
                         invoice_line_form.tax_ids.clear()
                     elif ncf_type and ncf_type[-8:] == "informal":
-                        company_tax_prefix = "account.%s_" % invoice_form.company_id.id
-                        invoice_line_form.tax_ids.clear()
-                        taxes = self.env["account.tax"].browse(
-                            [
-                                self.env.ref(company_tax_prefix + "tax_18_purch").id,
-                                self.env.ref(
-                                    company_tax_prefix + "ret_100_tax_person"
-                                ).id,
-                                self.env.ref(
-                                    company_tax_prefix + "ret_10_income_person"
-                                ).id,
-                            ]
+                        company_id = invoice_form.company_id.id
+                        service_withholding = self.env.ref(
+                            f"account.{company_id}_tax_group_person_services_15"
                         )
-                        for tax in taxes:
-                            invoice_line_form.tax_ids.add(tax)
+                        invoice_line_form.tax_ids.clear()
+                        invoice_line_form.tax_ids.add(service_withholding)
         invoice = invoice_form.save()
         return invoice
