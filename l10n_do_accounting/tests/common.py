@@ -3,17 +3,19 @@ from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
 
 class L10nDOTestsCommon(AccountTestInvoicingCommon):
+    chart_template = "do"
+    country_code = "DO"
+
     @classmethod
-    def setUpClass(cls, chart_template_ref="do"):
+    def setUpClass(cls):
         super().setUpClass()
 
-        cls.do_company = cls.setup_company_data(
-            "INDEXA SRL",
-            chart_template=chart_template_ref,
-            vat="131793916",
-            street="dummy address",
-            country_id=cls.env.ref("base.do").id,
-        )["company"]
+        cls.do_company = cls.env.company
+        cls.do_company.write({
+            "name": "INDEXA SRL",
+            "vat": "131793916",
+            "street": "dummy address",
+        })
 
         # multi-currency variables
         cls.usd_currency = cls.env.ref("base.USD")
