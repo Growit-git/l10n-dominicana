@@ -1,5 +1,6 @@
 from . import common
 from odoo import fields
+from odoo.tools import mute_logger
 from odoo.tests import tagged
 from odoo.exceptions import ValidationError
 import psycopg2
@@ -7,6 +8,12 @@ import psycopg2
 
 @tagged("-at_install", "post_install")
 class AccountMoveTest(common.L10nDOTestsCommon):
+    @classmethod
+    def get_default_groups(cls):
+        return super().get_default_groups() | cls.env.ref(
+            "l10n_do_accounting.group_l10n_do_debit_note"
+        )
+
     def test_001_invoice_ncf_types(self):
         """
         Check NCF invoice get correct document types domain.
@@ -621,6 +628,7 @@ class AccountMoveTest(common.L10nDOTestsCommon):
         sale_invoice_1_id.with_context(l10n_do_active_test=True)._post()
         self.assertEqual(sale_invoice_1_id.l10n_do_electronic_stamp, stamp)
 
+    @mute_logger("odoo.sql_db")
     def test_007_unique_sequence_number(self):
         """
         Check unique sequence number constraint works properly.
@@ -636,8 +644,9 @@ class AccountMoveTest(common.L10nDOTestsCommon):
 
         invoice_2 = self._create_l10n_do_invoice()
         invoice_2._post()
-        with self.assertRaises(psycopg2.errors.UniqueViolation):
+        with self.assertRaises(psycopg2.errors.UniqueViolation), self.env.cr.savepoint():
             invoice_2.write({"l10n_do_fiscal_number": "B0100000001"})
+            invoice_2.flush_recordset(["l10n_do_fiscal_number"])
 
     def test_008_check_sequence(self):
         """
@@ -697,8 +706,8 @@ class AccountMoveTest(common.L10nDOTestsCommon):
                 "document_number": "B0100000001",
             }
         )
-        self.assertEqual(invoice_1.name, "INV/%s/0001" % invoice_1.date.year)
         invoice_1._post()
+        self.assertEqual(invoice_1.name, "INV/%s/0001" % invoice_1.date.year)
         self.assertEqual(invoice_1.l10n_do_fiscal_number, "B0100000001")
 
         invoice_2 = self._create_l10n_do_invoice()
@@ -765,7 +774,7 @@ class AccountMoveTest(common.L10nDOTestsCommon):
             {
                 "base_amount": 100.0,
                 "exempt_amount": 0,
-                "isr_withholding_amount": 10.0,
+                "isr_withholding_amount": 15.0,
                 "isr_withholding_base_amount": 100.0,
                 "itbis_0_base_amount": 0,
                 "itbis_0_tax_amount": 0,

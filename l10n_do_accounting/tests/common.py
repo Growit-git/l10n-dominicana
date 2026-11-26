@@ -151,6 +151,7 @@ class L10nDOTestsCommon(AccountTestInvoicingCommon):
                             f"account.{company_id}_tax_group_person_services_15"
                         )
                         invoice_line_form.tax_ids.clear()
-                        invoice_line_form.tax_ids.add(service_withholding)
+                        for tax in service_withholding.children_tax_ids:
+                            invoice_line_form.tax_ids.add(tax)
         invoice = invoice_form.save()
         return invoice
