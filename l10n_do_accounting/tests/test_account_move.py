@@ -1,6 +1,7 @@
 from . import common
 from odoo import fields
 from odoo.tests import tagged
+from odoo.tools import mute_logger
 from odoo.exceptions import ValidationError
 import psycopg2
 
@@ -638,8 +639,20 @@ class AccountMoveTest(common.L10nDOTestsCommon):
 
         invoice_2 = self._create_l10n_do_invoice()
         invoice_2._post()
-        with self.assertRaises(psycopg2.errors.UniqueViolation):
+        original_number = invoice_2.l10n_do_fiscal_number
+        # PostgreSQL must reject this duplicate; keep the expected SQL log local.
+        with (
+            mute_logger("odoo.sql_db"),
+            self.assertRaises(psycopg2.errors.UniqueViolation) as error,
+            self.env.cr.savepoint(),
+        ):
             invoice_2.write({"l10n_do_fiscal_number": "B0100000001"})
+            invoice_2.flush_recordset(["l10n_do_fiscal_number"])
+        self.assertEqual(
+            error.exception.diag.constraint_name,
+            "account_move_unique_l10n_do_fiscal_number_sales",
+        )
+        self.assertEqual(invoice_2.l10n_do_fiscal_number, original_number)
 
     def test_008_check_sequence(self):
         """
