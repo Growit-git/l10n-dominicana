@@ -699,8 +699,8 @@ class AccountMoveTest(common.L10nDOTestsCommon):
                 "document_number": "B0100000001",
             }
         )
-        self.assertEqual(invoice_1.name, "INV/%s/0001" % invoice_1.date.year)
         invoice_1._post()
+        self.assertEqual(invoice_1.name, "INV/%s/0001" % invoice_1.date.year)
         self.assertEqual(invoice_1.l10n_do_fiscal_number, "B0100000001")
 
         invoice_2 = self._create_l10n_do_invoice()
