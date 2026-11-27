@@ -3,17 +3,30 @@ from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
 
 class L10nDOTestsCommon(AccountTestInvoicingCommon):
-    @classmethod
-    def setUpClass(cls, chart_template_ref="do"):
-        super(L10nDOTestsCommon, cls).setUpClass(chart_template_ref=chart_template_ref)
+    country_code = "DO"
+    chart_template = "do"
 
-        cls.do_company = cls.setup_company_data(
-            "INDEXA SRL",
-            chart_template=chart_template_ref,
-            vat="131793916",
-            street="dummy address",
-            country_id=cls.env.ref("base.do").id,
-        )["company"]
+    @classmethod
+    def _create_company(cls, **create_values):
+        create_values.setdefault("vat", "131793916")
+        create_values.setdefault("street", "dummy address")
+        return super()._create_company(**create_values)
+
+    @classmethod
+    def get_default_groups(cls):
+        return (super().get_default_groups()
+                | cls.env.ref("l10n_do_accounting.group_l10n_do_debit_note")
+                | cls.env.ref("l10n_do_accounting.group_l10n_do_fiscal_credit_note"))
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.do_company = cls.env.company
+
+        # Preserve the synthetic 10% scenario without depending on an old chart XML ID.
+        cls.informal_isr_tax = cls.env.ref(
+            "account.%s_ret_15_income_person" % cls.do_company.id
+        ).copy({"name": "QA ISR 10%", "amount": -10.0})
 
         # multi-currency variables
         cls.usd_currency = cls.env.ref("base.USD")
@@ -148,9 +161,7 @@ class L10nDOTestsCommon(AccountTestInvoicingCommon):
                                 self.env.ref(
                                     company_tax_prefix + "ret_100_tax_person"
                                 ).id,
-                                self.env.ref(
-                                    company_tax_prefix + "ret_10_income_person"
-                                ).id,
+                                self.informal_isr_tax.id,
                             ]
                         )
                         for tax in taxes:
